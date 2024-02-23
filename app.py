@@ -7,8 +7,8 @@ from langchain.embeddings import OpenAIEmbeddings, HuggingFaceInstructEmbeddings
 from langchain.vectorstores import FAISS
 # from langchain.llm import OpenAI
 from langchain.chat_models import ChatOpenAI
-from langchain.memory import ConversationalBufferMemory
-from langchain.chains import ConversationalRetrieverChain
+from langchain.memory import ConversationBufferMemory
+from langchain.chains import ConversationalRetrievalChain
 from htmlTemplates import css, bot_template, user_template
 from langchain.llms import HuggingFaceHub
 
@@ -42,8 +42,8 @@ def get_vector_store(text_chunks):
 def get_conversation_chain(vectorstore):
     # llm = ChatOpenAI()
     llm = HuggingFaceHub(repo_id='google/flan-t5-xxl', model_kwargs={'temperature':0.5, 'max_length':512})
-    memory = ConversationalBufferMemory(memory_key="chat_history", return_messages=True)
-    conversation_chain = ConversationalRetrieverChain.from_llm(
+    memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
+    conversation_chain = ConversationalRetrievalChain.from_llm(
         llm = llm, 
         retriever=vectorstore.as_retriever(),
         memory=memory
@@ -51,7 +51,7 @@ def get_conversation_chain(vectorstore):
     return conversation_chain
 
 def handle_userinput(user_question):
-    response = st.session_state.conversation({'question', user_question})
+    response = st.session_state.conversation({'question': user_question})
     st.session_state.chat_history = response['chat_history']
     
     for i, message in enumerate(st.session_state.chat_history):
@@ -79,8 +79,8 @@ def main():
 
     if user_question:
         handle_userinput(user_question)
-    st.write(user_template.replace("{{MSG}}", "Hello robot"), unsafe_allow_html=True)
-    st.write(bot_template.replace("{{MSG}}", "Hello human"), unsafe_allow_html=True)
+    # st.write(user_template.replace("{{MSG}}", "Hello robot"), unsafe_allow_html=True)
+    # st.write(bot_template.replace("{{MSG}}", "Hello human"), unsafe_allow_html=True)
 
 
     with st.sidebar:
@@ -103,5 +103,5 @@ def main():
                 st.session_state.conversation = get_conversation_chain(vectorstore)
 
 
-if not __name__ == "__main__":
+if __name__ == "__main__":
     main()
